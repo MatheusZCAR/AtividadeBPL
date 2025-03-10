@@ -33,3 +33,6 @@ def escolher_grafo():
 grafo_escolhido, grafo = escolher_grafo()
 if grafo:
     print(f"Grafo {grafo_escolhido} gerado com sucesso!")
+
+
+
