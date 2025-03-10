@@ -1,3 +1,12 @@
+"""
+Membros do Grupo
+Felipe Yabiko Nogueira - RA: 22002265
+Henrique Ladeira Alves - RA: 23016926
+João Victor Rokemback Tapparo - RA: 22003236
+Matheus Zanon Caritá - RA: 22014203
+Mayron Germann Sousa de Pádua - RA: 21003182
+"""
+
 import networkx as nx
 import matplotlib.pyplot as plt
 import time
@@ -23,9 +32,10 @@ def gerar_grafo_conexo(num_vertices: int, num_arestas: int) -> nx.Graph:
     
     # Adicionando arestas extras determinísticas
     for i in range(1, num_vertices + 1):
-        for j in range(1, num_arestas):
-            destino = (i + j) % num_vertices  # Padrão fixo para previsibilidade
-            if destino != i:
+        for j in range(1, num_arestas + 1):  # Ajusta para incluir o número exato de arestas
+            # Ajuste para que os nós fiquem no intervalo [1, num_vertices]
+            destino = ((i + j - 1) % num_vertices) + 1  
+            if destino != i and not grafo.has_edge(i, destino):
                 grafo.add_edge(i, destino)
     
     return grafo
@@ -33,12 +43,42 @@ def gerar_grafo_conexo(num_vertices: int, num_arestas: int) -> nx.Graph:
 def gerar_grafo_kn(num_vertices: int) -> nx.Graph:
     """Gera um grafo completo Kn com o número de vértices especificado."""
     grafo = nx.complete_graph(num_vertices)
+    # Renomeia os nós de 0...n-1 para 1...n
     grafo = nx.relabel_nodes(grafo, {i: i+1 for i in grafo.nodes})
     return grafo
-    """Gera um grafo completo Kn com o número de vértices especificado."""
-    grafo = nx.complete_graph(num_vertices)
-    grafo = nx.relabel_nodes(grafo, {i: i+1 for i in grafo.nodes})
-    return grafo
+    
+
+def visualizar_grafo_animado(grafo: nx.Graph, titulo: str, caminho: list) -> None:
+    """
+    Exibe uma animação do caminho percorrido no grafo.
+    
+    Args:
+        grafo (nx.Graph): O grafo a ser visualizado.
+        titulo (str): Título da visualização.
+        caminho (list): Lista de nós representando o caminho percorrido.
+    """
+    pos = nx.spring_layout(grafo, seed=42)
+    plt.figure(figsize=(10, 6))
+    
+    # Desenha o grafo inicial
+    nx.draw(grafo, pos, node_size=20, edge_color="gray", alpha=0.6)
+    plt.title(titulo)
+    
+    for i, nodo in enumerate(caminho):
+        plt.clf()
+        nx.draw(grafo, pos, node_size=20, edge_color="gray", alpha=0.6)
+        
+        # Destaca os nós já percorridos em azul
+        nx.draw_networkx_nodes(grafo, pos, nodelist=caminho[:i+1], node_color='blue', node_size=100)
+        
+        # Destaca o nó inicial e final
+        nx.draw_networkx_nodes(grafo, pos, nodelist=[caminho[0]], node_color='green', node_size=150, label="Início")
+        nx.draw_networkx_nodes(grafo, pos, nodelist=[caminho[-1]], node_color='red', node_size=150, label="Fim")
+        
+        plt.legend()
+        plt.pause(0.2)  # Pequena pausa para animação
+    
+    plt.show()
 
 def visualizar_grafo(grafo: nx.Graph, titulo: str, inicio: int, fim: int) -> None:
     """
@@ -88,10 +128,29 @@ def busca_profundidade(grafo: nx.Graph, inicio: int, fim: int):
                 pilha.append((vizinho, caminho + [vizinho]))
     return []
 
+def busca_profundidade_limitada(grafo: nx.Graph, inicio: int, fim: int, limite: int):
+    """
+    Implementa a busca em profundidade limitada (DLS) com um limite máximo de profundidade.
+    """
+    pilha = [(inicio, [inicio], 0)]  # Adicionamos a profundidade inicial como 0
+    visitados = set()
+    
+    while pilha:
+        (atual, caminho, profundidade) = pilha.pop()
+        if atual == fim:
+            return caminho
+        if atual not in visitados and profundidade < limite:
+            visitados.add(atual)
+            for vizinho in grafo.neighbors(atual):
+                pilha.append((vizinho, caminho + [vizinho], profundidade + 1))
+    return []
+
+
 def escolher_grafo() -> Tuple[str, nx.Graph]:
     """Permite ao usuário escolher um grafo a partir das opções disponíveis."""
     opcoes = [(i, v, k, f"Grafo com {v} vértices e {k} arestas") 
-               for i, (v, k) in enumerate([(v, k) for v in [500, 5000, 10000] for k in [3, 5, 7]], start=1)]
+              for i, (v, k) in enumerate([(v, k) for v in [500, 5000, 10000] for k in [3, 5, 7]], start=1)]
+    # Opção para grafo completo (Kn)
     opcoes.append((10, 10000, "Kn", "Grafo Completo com 10000 vértices"))
     
     while True:
@@ -112,6 +171,7 @@ def escolher_grafo() -> Tuple[str, nx.Graph]:
         except ValueError:
             print("Entrada inválida! Digite um número correspondente à opção desejada.")
 
+# Execução principal
 grafo_escolhido, grafo = escolher_grafo()
 if grafo:
     print(f"{grafo_escolhido} gerado com sucesso!")
@@ -129,15 +189,27 @@ if grafo:
             print("Entrada inválida! Digite números inteiros.")
     
     while True:
-        escolha_busca = input("Escolha o algoritmo de busca (L para Busca em Largura, P para Busca em Profundidade): ").strip().upper()
-        if escolha_busca == 'L':
+        escolha_busca = input("Escolha o algoritmo de busca (B para BFS, P para DFS, L para DFS Limitado): ").strip().upper()
+        if escolha_busca == 'B':
             algoritmo = busca_largura
             break
         elif escolha_busca == 'P':
             algoritmo = busca_profundidade
             break
+        elif escolha_busca == 'L':
+            while True:
+                try:
+                    limite = int(input("Digite o limite de profundidade: "))
+                    if limite > 0:
+                        algoritmo = lambda g, i, f: busca_profundidade_limitada(g, i, f, limite)
+                        break
+                    else:
+                        print("O limite deve ser um número inteiro positivo!")
+                except ValueError:
+                    print("Entrada inválida! Digite um número inteiro.")
+            break
         else:
-            print("Opção inválida! Digite 'L' para Busca em Largura ou 'P' para Busca em Profundidade.")
+            print("Opção inválida! Digite 'B' para busca em largura, 'P' para busca em profundidade ou 'L' para busca limitada.")
     
     inicio_tempo = time.time()
     caminho = algoritmo(grafo, inicio, fim)
@@ -150,4 +222,7 @@ if grafo:
         print("Nenhum caminho encontrado.")
     
     print(f"Tempo de execução: {fim_tempo - inicio_tempo:.6f} segundos")
-    visualizar_grafo(grafo, grafo_escolhido, inicio, fim)
+    if caminho:
+        visualizar_grafo_animado(grafo, grafo_escolhido, caminho)
+    else:
+        visualizar_grafo(grafo, grafo_escolhido, inicio, fim)
