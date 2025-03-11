@@ -76,7 +76,7 @@ def visualizar_grafo_animado(grafo: nx.Graph, titulo: str, caminho: list) -> Non
         nx.draw_networkx_nodes(grafo, pos, nodelist=[caminho[-1]], node_color='red', node_size=150, label="Fim")
         
         plt.legend()
-        plt.pause(0.2)  # Pequena pausa para animação
+        plt.pause(0.005)  # Pequena pausa para animação
     
     plt.show()
 
