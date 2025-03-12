@@ -43,44 +43,61 @@ def gerar_grafo_conexo(num_vertices: int, num_arestas: int) -> nx.Graph:
 def gerar_grafo_kn(num_vertices: int) -> nx.Graph:
     """Gera um grafo completo Kn com o número de vértices especificado."""
     grafo = nx.complete_graph(num_vertices)
-    # Renomeia os nós de 0...n-1 para 1...n
+    # Renomeia os nós de 0...n-1 para 1...n``
     grafo = nx.relabel_nodes(grafo, {i: i+1 for i in grafo.nodes})
     return grafo
-    
 
 def visualizar_grafo_animado(grafo: nx.Graph, titulo: str, caminho: list) -> None:
     """
-    Exibe uma animação do caminho percorrido no grafo.
-    
-    Args:
-        grafo (nx.Graph): O grafo a ser visualizado.
-        titulo (str): Título da visualização.
-        caminho (list): Lista de nós representando o caminho percorrido.
+    Exibe uma animação otimizada do caminho percorrido no grafo.
     """
-    pos = nx.spring_layout(grafo, seed=42)
-    plt.figure(figsize=(10, 6))
+    # Usa um layout mais rápido para grafos grandes
+    pos = nx.kamada_kawai_layout(grafo) if len(grafo.nodes) > 1000 else nx.spring_layout(grafo, seed=42)
     
-    # Desenha o grafo inicial
-    nx.draw(grafo, pos, node_size=20, edge_color="gray", alpha=0.6)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    nx.draw(grafo, pos, node_size=10 if len(grafo.nodes) > 1000 else 20, edge_color="gray", alpha=0.6, ax=ax)
     plt.title(titulo)
-    
+
+    # Pré-processa os nós para animação mais rápida
+    nodes_inicial = nx.draw_networkx_nodes(grafo, pos, nodelist=[caminho[0]], node_color='green', node_size=150, ax=ax)
+    nodes_final = nx.draw_networkx_nodes(grafo, pos, nodelist=[caminho[-1]], node_color='red', node_size=150, ax=ax)
+    nodes_caminho = nx.draw_networkx_nodes(grafo, pos, nodelist=[], node_color='blue', node_size=100, ax=ax)
+
+    # Atualiza os nós percorridos sem redesenhar o grafo inteiro
     for i, nodo in enumerate(caminho):
-        plt.clf()
-        nx.draw(grafo, pos, node_size=20, edge_color="gray", alpha=0.6)
-        
-        # Destaca os nós já percorridos em azul
-        nx.draw_networkx_nodes(grafo, pos, nodelist=caminho[:i+1], node_color='blue', node_size=100)
-        
-        # Destaca o nó inicial e final
-        nx.draw_networkx_nodes(grafo, pos, nodelist=[caminho[0]], node_color='green', node_size=150, label="Início")
-        nx.draw_networkx_nodes(grafo, pos, nodelist=[caminho[-1]], node_color='red', node_size=150, label="Fim")
-        
-        plt.legend()
-        plt.pause(0.005)  # Pequena pausa para animação
-    
+        nodes_caminho.set_offsets([pos[nodo] for nodo in caminho[:i+1]])
+        plt.pause(0.0005)
+
     plt.show()
 
+
 def visualizar_grafo(grafo: nx.Graph, titulo: str, inicio: int, fim: int) -> None:
+    """
+    Exibe uma visualização otimizada do grafo gerado com nós de início e fim destacados.
+    """
+    # Usa um layout mais simples e rápido para grafos maiores
+    pos = nx.circular_layout(grafo) if len(grafo.nodes) > 1000 else nx.spring_layout(grafo, seed=42)
+    plt.figure(figsize=(10, 6))
+
+    nx.draw(grafo, pos, node_size=10 if len(grafo.nodes) > 1000 else 20, edge_color="gray", alpha=0.6)
+    nx.draw_networkx_nodes(grafo, pos, nodelist=[inicio], node_color='green', label="Início", node_size=100)
+    nx.draw_networkx_nodes(grafo, pos, nodelist=[fim], node_color='red', label="Fim", node_size=100)
+    plt.title(titulo)
+    plt.legend()
+    plt.show()
+    """
+    Exibe uma visualização otimizada do grafo gerado com nós de início e fim destacados.
+    """
+    plt.figure(figsize=(10, 6))
+    pos = nx.spring_layout(grafo, seed=42)
+
+    nx.draw(grafo, pos, node_size=20, edge_color="gray", alpha=0.6)
+    nx.draw_networkx_nodes(grafo, pos, nodelist=[inicio], node_color='green', label="Início", node_size=100)
+    nx.draw_networkx_nodes(grafo, pos, nodelist=[fim], node_color='red', label="Fim", node_size=100)
+    plt.title(titulo)
+    plt.legend()
+    plt.show()
+
     """
     Exibe uma visualização do grafo gerado com nós de início e fim destacados.
     """
