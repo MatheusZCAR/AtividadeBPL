@@ -31,5 +31,5 @@ O projeto permite gerar grafos determinísticos com diferentes quantidades de v�
 
 ## 📝 Observações importantes
 
-- Grafos maiores, especialmente o completo (**Kn com 10.000 vértices**), podem levar tempo significativo para gerar e exibir visualmente.
-- A visualização gráfica do caminho é feita com animação que pode demorar, dependendo do tamanho do grafo. **Não interrompa a execução**, aguarde a conclusão normalmente.
+- Grafos Grandes: Grafos com muitos vértices, especialmente grafos completos (**Kn com 10.000 vértices**), podem demandar um tempo significativo para geração e visualização. Por exemplo, em um processador Apple Silicon M2, a geração e visualização de um grafo completo com 10.000 vértices levaram aproximadamente **7 minutos e 20 segundos**.
+- Visualização Animada: A visualização gráfica do caminho encontrado é feita por meio de uma animação, que pode demorar dependendo do tamanho do grafo. Recomenda-se não interromper a execução e aguardar a conclusão do processo para garantir a integridade dos resultados.
